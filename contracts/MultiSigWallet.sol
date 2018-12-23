@@ -25,4 +25,22 @@ contract MultiSigWallet {
         }
     }
 
+    function approve() public { 
+        require(isApprover[msg.sender], "Not an approver");
+        if (!approvedBy[msg.sender]) {
+            approvedBy[msg.sender] = true;
+            approvalsNum++;
+        }
+
+        if (approvalsNum == minApprovers) {
+            beneficiary.send(address(this).balance);
+            selfdestruct(owner);
+        }
+    }
+
+    function reject() public {
+        require(isApprover[msg.sender], "Not an approver");
+
+        selfdestruct(owner);
+    }
 }
