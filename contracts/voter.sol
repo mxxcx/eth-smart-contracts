@@ -1,5 +1,4 @@
 pragma solidity ^0.4.0;
-pragma experimental ABIEncoderV2;
 
 contract Voter {
 
@@ -12,36 +11,39 @@ contract Voter {
     mapping (address => bool) hasVoted;
     mapping (string => OptionPos) posOfOption;
     string[] public options;
+    bool votingStarted;
 
-    constructor(string[] _options) public {
-        options = _options;
+    function addOption(string option) public {
+        require(!votingStarted);
+        options.push(option);
+    }
+
+    function startVoting() public {
+        require(!votingStarted);
         votes.length = options.length;
 
         for (uint i = 0; i < options.length; i++) {
             OptionPos memory option = OptionPos(i, true);
             posOfOption[options[i]] = option;
         }
+        votingStarted = true;
     }
 
     function vote(uint option) public {
-        require(0 <= option && option < options.length, "Invalid option");
-        require(!hasVoted[msg.sender], "Account has already voted");
+        require(0 <= option && option < options.length);
+        require(!hasVoted[msg.sender]);
 
         hasVoted[msg.sender] = true;
         votes[option] = votes[option] + 1;
     }
 
     function vote(string option) public {
-        require(!hasVoted[msg.sender], "Account has already voted");
+        require(!hasVoted[msg.sender]);
         OptionPos memory optionPos = posOfOption[option];
-        require(optionPos.exists, "Option does not exist");
+        require(optionPos.exists);
 
         hasVoted[msg.sender] = true;
         votes[optionPos.pos] = votes[optionPos.pos]++;
-    }
-
-    function getOptions() public view returns (string[]) {
-        return options;
     }
 
     function getVotes() public view returns (uint[]) {
